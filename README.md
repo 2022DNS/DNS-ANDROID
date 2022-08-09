@@ -1,2 +1,2 @@
 # DNS-ANDROID
-Library for android and application example for simple application.
+Library for android and example for simple navigation application.
