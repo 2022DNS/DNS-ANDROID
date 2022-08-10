@@ -14,3 +14,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "DNS_ANDROID"
 include ':app'
+include ':dns_lib'
+include ':opencv460'
