@@ -14,6 +14,9 @@ import androidx.core.content.ContextCompat;
 
 /**
  * DnsPermission class is for easily obtaining camera permission. If the permission is denied, it moves to the application permission setting screen through its own dialog.
+ *
+ * @author Sohn Young Jin
+ * @since 1.0.0
  */
 public class DnsPermission {
 
