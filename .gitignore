@@ -13,8 +13,3 @@
 .externalNativeBuild
 .cxx
 local.properties
-/opencv460
-/app/src/main/jniLibs/arm64-v8a/libopencv_java4.so
-/app/src/main/jniLibs/armeabi-v7a/libopencv_java4.so
-/app/src/main/jniLibs/x86/libopencv_java4.so
-/app/src/main/jniLibs/x86_64/libopencv_java4.so
