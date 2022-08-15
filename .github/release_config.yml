@@ -1,0 +1,27 @@
+name-template: 'DNS v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+template: |
+  ## New version of dns_lib has been released!
+  You can download latest-version of dns_lib-debug from [here](https://downgit.github.io/#/home?url=https://github.com/2022DNS/DNS-ANDROID/tree/release/dns_lib/build/outputs/aar/dns_lib-debug.aar)<br>
+  You can download latest-version of dns_lib-release from [here](https://downgit.github.io/#/home?url=https://github.com/2022DNS/DNS-ANDROID/tree/release/dns_lib/build/outputs/aar/dns_lib-release.aar)<br>
+
+  ## What's new in this version?
+  ### 1) Summary
+  Details.
+  > Note for this summary.
+  <br>
+
+  ## Changes
+  $CHANGES
+version-resolver:
+  major:
+    labels:
+      - 'major-update'
+  minor:
+    labels:
+      - 'minor-update'
+  patch:
+    labels:
+      - 'patch-update'
+  default: patch
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'

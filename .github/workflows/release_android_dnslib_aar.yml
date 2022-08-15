@@ -1,0 +1,38 @@
+# This yml file used for release dns_lib.aar when release branch detect push or pull_request event.
+name: Release dns_lib aar
+
+on:
+  pull_request:
+    branches: [ "release" ]
+    types: [ closed ]
+
+jobs:
+  dnb_lib-release:
+
+    runs-on: ubuntu-latest
+
+    if: github.event.pull_request.merged == true && github.base_ref == 'release'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Extract dns_lib-debug.aar with Gradle
+        run: ./gradlew dns_lib:assembleDebug
+
+      - name: Extract dns_lib-release.aar with Gradle
+        run: ./gradlew dns_lib:assembleRelease
+
+      - name: Creat release note
+        uses: release-drafter/release-drafter@v5
+        with:
+          config-name: release_config.yml
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
