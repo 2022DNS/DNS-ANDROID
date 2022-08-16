@@ -3,8 +3,8 @@ name: Release dns_lib aar
 
 on:
   pull_request:
-    branches: release
-    types: closed
+    branches: [ release ]
+    types: [ closed ]
 jobs:
   release_dns_lib:
     runs-on: ubuntu-latest
@@ -26,6 +26,6 @@ jobs:
       - name: Create release note
         uses: release-drafter/release-drafter@v5
         with:
-          config-name: release_config.yml
+          config-name: config.yml
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
