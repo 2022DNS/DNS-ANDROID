@@ -1,7 +1,10 @@
 labels:
-  "major-update":
-    - '\bmajor\b'
-  "minor-update":
-    - '\bminor\b'
-  "patch-update":
-    - '\bpatch\b'
+  'major-update':
+    include:
+      - '\bmajor\b'
+  'minor-update':
+    include:
+      - '\bminor\b'
+  'patch-update':
+    include:
+      - '\bpatch\b'
