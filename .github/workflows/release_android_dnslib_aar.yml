@@ -3,10 +3,10 @@ name: Release dns_lib aar
 
 on:
   pull_request:
-    branches: [ "release" ]
-    types: [ closed ]
+    branches: release
+    types: closed
 jobs:
-  release-dns_lib:
+  release_dns_lib:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true && github.base_ref == 'release'
     steps:
