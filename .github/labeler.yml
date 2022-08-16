@@ -1,0 +1,7 @@
+labels:
+  'major':
+    - '\bmajor\b'
+  'minor':
+    - '\bminor\b'
+  'patch':
+    - '\bpatch\b'
