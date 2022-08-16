@@ -1,7 +1,7 @@
 labels:
-  "major-update":
+  'major':
     - '\bmajor\b'
-  "minor-update":
+  'minor':
     - '\bminor\b'
-  "patch-update":
+  'patch':
     - '\bpatch\b'

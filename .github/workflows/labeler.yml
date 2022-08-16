@@ -4,14 +4,14 @@ on:
   pull_request:
     types: [ opened ]
     branches:
-      - develop
+      - release
 
 jobs:
   update_release:
     runs-on: ubuntu-latest
     steps:
       - name: Labeling
-      - uses: jimschubert/labeler-action@v2
+        uses: jimschubert/labeler-action@v2
         with:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.ACTION_TOKEN}}
 
