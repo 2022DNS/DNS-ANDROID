@@ -1,16 +1,13 @@
-name: Community
+name: Labeling develop to release PR
 on:
   pull_request:
-    types: [ opened ]
-    branches: [ release ]
-  pull_request_target:
     types: [ opened ]
     branches: [ release ]
 jobs:
   labeler:
     runs-on: ubuntu-latest
     steps:
-      - name: Check Labels
+      - name: Check labels from PR title
         id: labeler
         uses: jimschubert/labeler-action@v2
         with:
