@@ -1,4 +1,4 @@
 # DNS-ANDROID
 Library for android and example for simple navigation application.
 
-Latest version: 1.0.1
+Latest version: 1.0.2
