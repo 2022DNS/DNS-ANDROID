@@ -26,7 +26,7 @@ jobs:
       - name: Upload dns_lib-debug.aar & dns_lib-release.aar
         uses: actions/upload-artifact@v3
         with:
-          name: dns_lib-*.aar files
+          name: dns_lib aar files
           path: dns_lib/build/outputs/aar/
       - name: Create release note
         uses: release-drafter/release-drafter@v5
