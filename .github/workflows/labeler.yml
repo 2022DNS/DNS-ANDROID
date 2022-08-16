@@ -1,13 +1,11 @@
 name: Release labeling
-
 on:
-  pull_request:
+  pull_request_target:
     types: [ opened ]
     branches:
       - release
-
 jobs:
-  update_release:
+  labeling:
     runs-on: ubuntu-latest
     steps:
       - name: Labeling
