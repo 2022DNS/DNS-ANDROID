@@ -1,17 +1,15 @@
 name: Release labeling
-
 on:
-  pull_request:
+  pull_request_target:
     types: [ opened ]
     branches:
       - release
-
 jobs:
-  update_release:
+  labeling:
     runs-on: ubuntu-latest
     steps:
       - name: Labeling
         uses: jimschubert/labeler-action@v2
         with:
-          GITHUB_TOKEN: ${{secrets.ACTION_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
