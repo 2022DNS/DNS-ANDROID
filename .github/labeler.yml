@@ -1,10 +1,12 @@
+enable:
+  prs: true
 labels:
-  'major-update':
+  'major':
     include:
       - '\bmajor\b'
-  'minor-update':
+  'minor':
     include:
       - '\bminor\b'
-  'patch-update':
+  'patch':
     include:
       - '\bpatch\b'
