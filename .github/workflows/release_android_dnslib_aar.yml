@@ -28,4 +28,4 @@ jobs:
         with:
           config-name: release_config.yml
         env:
-          GITHUB_TOKEN: ${{secrets.ACTION_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

@@ -11,5 +11,5 @@ jobs:
       - name: Labeling
         uses: jimschubert/labeler-action@v2
         with:
-          GITHUB_TOKEN: ${{secrets.ACTION_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
