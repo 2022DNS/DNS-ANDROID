@@ -1,12 +1,7 @@
-enable:
-  prs: true
 labels:
   'major':
-    include:
-      - '\bmajor\b'
+    - '\bmajor\b'
   'minor':
-    include:
-      - '\bminor\b'
+    - '\bminor\b'
   'patch':
-    include:
-      - '\bpatch\b'
+    - '\bpatch\b'
