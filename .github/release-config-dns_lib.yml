@@ -14,8 +14,9 @@ version-resolver:
   default: patch
 template: |
   ## New version of dns_lib has been released!
-  You can download latest-version of dns_lib-debug.aar from [here](https://downgit.github.io/#/home?url=https://github.com/2022DNS/DNS-ANDROID/tree/release/dns_lib/build/outputs/aar/dns_lib-debug.aar)<br>
-  You can download latest-version of dns_lib-release.aar from [here](https://downgit.github.io/#/home?url=https://github.com/2022DNS/DNS-ANDROID/tree/release/dns_lib/build/outputs/aar/dns_lib-release.aar)<br>
+  You can download latest-version of dns_lib-debug.aar from [here](https://github.com/2022DNS/DNS-ANDROID/raw/master/dns_lib/build/outputs/aar/dns_lib-debug.aar)<br>
+  You can download latest-version of dns_lib-release.aar from [here](https://github.com/2022DNS/DNS-ANDROID/raw/master/dns_lib/build/outputs/aar/dns_lib-release.aar)
+  <br>
 
   ## What's new in this version?
   ### 1) Summary
