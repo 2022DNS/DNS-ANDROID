@@ -166,6 +166,11 @@ public class DnsRecognition {
         return cameraView;
     }
 
+    /**
+     * Add camera view to view group.
+     *
+     * @param viewGroup Target view group.
+     */
     public void addCameraView(ViewGroup viewGroup) {
         viewGroup.addView(cameraView);
     }
