@@ -14,8 +14,14 @@ version-resolver:
   default: patch
 template: |
   ## New version of dns_lib has been released!
+  ### Download dns_lib<br>
   You can download latest-version of dns_lib-debug.aar from [here](https://github.com/2022DNS/DNS-ANDROID/raw/master/dns_lib/build/outputs/aar/dns_lib-debug.aar)<br>
   You can download latest-version of dns_lib-release.aar from [here](https://github.com/2022DNS/DNS-ANDROID/raw/master/dns_lib/build/outputs/aar/dns_lib-release.aar)
+  <br>
+
+  ### Download opencv460<br>
+  You can download latest-version of opencv460-debug.aar from [here](https://github.com/2022DNS/DNS-ANDROID/raw/master/opencv460/build/outputs/aar/opencv460-debug.aar)<br>
+  You can download latest-version of opencv460-release.aar from [here](https://github.com/2022DNS/DNS-ANDROID/raw/master/opencv460/build/outputs/aar/opencv460-release.aar)
   <br>
 
   ## What's new in this version?

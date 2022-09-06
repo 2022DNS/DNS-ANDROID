@@ -3,6 +3,7 @@ package com.dns.dns_lib;
 import android.content.Context;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.view.ViewGroup;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
@@ -25,7 +26,7 @@ import java.util.List;
  * @author Sohn Young Jin
  * @since 1.0.0
  */
-public class DnsRecognition implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class DnsRecognition {
     /**
      * Back camera.
      */
@@ -70,6 +71,8 @@ public class DnsRecognition implements CameraBridgeViewBase.CvCameraViewListener
      */
     private double lastFrameTime;
 
+    private CameraBridgeViewBase.CvCameraViewListener2 cameraViewListener2;
+
     static {
         if (!OpenCVLoader.initDebug()) {
             // Load OpenCV failed.
@@ -90,10 +93,51 @@ public class DnsRecognition implements CameraBridgeViewBase.CvCameraViewListener
         this.cameraType = cameraType;
         cameraView = new JavaCameraView(context, cameraType);
         cameraView.setVisibility(SurfaceView.VISIBLE);
-        cameraView.setCvCameraViewListener(this);
         ConstraintLayout.LayoutParams layoutParams = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT);
         layoutParams.setMargins(0, 0, 0, 0);
         cameraView.setLayoutParams(layoutParams);
+
+        cameraViewListener2 = new CameraBridgeViewBase.CvCameraViewListener2() {
+            @Override
+            public void onCameraViewStarted(int width, int height) {
+                originalFrame = new Mat(height, width, CvType.CV_8UC4);
+                lastFrameTime = System.currentTimeMillis();
+            }
+
+            @Override
+            public void onCameraViewStopped() {
+                originalFrame.release();
+            }
+
+            @Override
+            public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+                originalFrame = inputFrame.rgba();
+                modifedFrame = originalFrame.t();
+
+                // Check camera type and modify frame.
+                if (cameraType == 0) {
+                    // If selected camera type is back camera.
+                    Core.flip(originalFrame.t(), modifedFrame, 1);
+                } else if (cameraType == 1 || cameraType == 2) {
+                    // If selected camera type is front camera.
+                    Core.flip(originalFrame.t(), modifedFrame, -1);
+                }
+                Imgproc.resize(modifedFrame, modifedFrame, originalFrame.size());
+
+                // Check camera frame.
+                frameCount++;
+                double currentTime = System.currentTimeMillis();
+                if (currentTime - lastFrameTime > 1000) {
+                    System.out.println("Current frame: " + frameCount);
+                    frameCount = 0;
+                    lastFrameTime = currentTime;
+                }
+
+                return modifedFrame;
+            }
+        };
+
+        cameraView.setCvCameraViewListener(cameraViewListener2);
 
         onCameraPermissionGranted();
 
@@ -113,44 +157,6 @@ public class DnsRecognition implements CameraBridgeViewBase.CvCameraViewListener
         baseLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
     }
 
-    @Override
-    public void onCameraViewStarted(int width, int height) {
-        originalFrame = new Mat(height, width, CvType.CV_8UC4);
-        lastFrameTime = System.currentTimeMillis();
-    }
-
-    @Override
-    public void onCameraViewStopped() {
-        originalFrame.release();
-    }
-
-    @Override
-    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        originalFrame = inputFrame.rgba();
-        modifedFrame = originalFrame.t();
-
-        // Check camera type and modify frame.
-        if (cameraType == 0) {
-            // If selected camera type is back camera.
-            Core.flip(originalFrame.t(), modifedFrame, 1);
-        } else if (cameraType == 1 || cameraType == 2) {
-            // If selected camera type is front camera.
-            Core.flip(originalFrame.t(), modifedFrame, -1);
-        }
-        Imgproc.resize(modifedFrame, modifedFrame, originalFrame.size());
-
-        // Check camera frame.
-        frameCount++;
-        double currentTime = System.currentTimeMillis();
-        if (currentTime - lastFrameTime > 1000) {
-            System.out.println("Current frame: " + frameCount);
-            frameCount = 0;
-            lastFrameTime = currentTime;
-        }
-
-        return modifedFrame;
-    }
-
     /**
      * Get camera preview widget. It is recommended that this view be included in ConstraintLayout.
      *
@@ -158,6 +164,10 @@ public class DnsRecognition implements CameraBridgeViewBase.CvCameraViewListener
      */
     public JavaCameraView getCameraView() {
         return cameraView;
+    }
+
+    public void addCameraView(ViewGroup viewGroup) {
+        viewGroup.addView(cameraView);
     }
 
     protected void onCameraPermissionGranted() {
