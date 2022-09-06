@@ -25,20 +25,10 @@ jobs:
         run: ./gradlew dns_lib:assembleDebug
       - name: Extract dns_lib-release.aar with Gradle
         run: ./gradlew dns_lib:assembleRelease
-      - name: Upload dns_lib-debug.aar & dns_lib-release.aar artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: dns_lib aar files
-          path: dns_lib/build/outputs/aar/
       - name: Extract opencv460-debug.aar with Gradle
         run: ./gradlew opencv460:assembleDebug
       - name: Extract opencv460-release.aar with Gradle
         run: ./gradlew opencv460:assembleRelease
-      - name: Upload opencv460-debug.aar & opencv460-release.aar artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: opencv460 aar files
-          path: opencv460/build/outputs/aar/
       - name: Upload to remote storage release branch
         run: |
           git add 'dns_lib/build/outputs/aar/'
