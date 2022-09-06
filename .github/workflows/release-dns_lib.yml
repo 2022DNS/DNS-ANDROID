@@ -30,12 +30,22 @@ jobs:
         with:
           name: dns_lib aar files
           path: dns_lib/build/outputs/aar/
+      - name: Extract opencv460-debug.aar with Gradle
+        run: ./gradlew opencv460:assembleDebug
+      - name: Extract opencv460-release.aar with Gradle
+        run: ./gradlew opencv460:assembleRelease
+      - name: Upload opencv460-debug.aar & opencv460-release.aar artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: opencv460 aar files
+          path: opencv460/build/outputs/aar/
       - name: Upload to remote storage release branch
         run: |
           git add 'dns_lib/build/outputs/aar/'
+          git add 'opencv460/build/outputs/aar/'
           git config --global user.email '2022dontsleep@gmail.com'
           git config --global user.name 'DontSleep2022'
-          git commit -m 'Upload dns_lib aar'
+          git commit -m 'Upload dns_lib and opencv460 aar'
           git push
       - name: Create release note
         uses: release-drafter/release-drafter@v5
