@@ -14,6 +14,8 @@ import com.dns.dns_lib.DnsRecognition;
 public class MainActivity extends AppCompatActivity {
     private boolean enable = true;
 
+    private DnsRecognition dnsRecognition;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,19 +42,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showCameraPreview() {
-        DnsRecognition dnsRecognition = new DnsRecognition(getApplicationContext(), DnsRecognition.BACK_CAMERA);
+        dnsRecognition = new DnsRecognition(getApplicationContext(), DnsRecognition.BACK_CAMERA);
 
         ConstraintLayout constraintLayout = findViewById(R.id.cl_root);
 
-        constraintLayout.addView(dnsRecognition.getCameraView());
+        dnsRecognition.addCameraView(constraintLayout);
+    }
 
-        dnsRecognition.getCameraView().setOnClickListener(view -> {
-            if (enable) {
-                dnsRecognition.getCameraView().disableView();
-            } else {
-                dnsRecognition.getCameraView().enableView();
-            }
-            enable = !enable;
-        });
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (dnsRecognition != null) {
+            dnsRecognition.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (dnsRecognition != null) {
+            dnsRecognition.onPause();
+        }
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (dnsRecognition != null) {
+            dnsRecognition.onDestroy();
+        }
+        super.onDestroy();
     }
 }
