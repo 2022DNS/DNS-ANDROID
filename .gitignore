@@ -13,4 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
-/opencv460/build
+/opencv460/build/*
+!/opencv460/build/outputs/aar
