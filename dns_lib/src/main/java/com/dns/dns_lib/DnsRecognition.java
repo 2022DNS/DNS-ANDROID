@@ -1,6 +1,8 @@
 package com.dns.dns_lib;
 
+import android.app.Activity;
 import android.content.Context;
+import android.util.Base64;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
@@ -15,8 +17,11 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgcodecs.Imgcodecs;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -50,6 +55,11 @@ public class DnsRecognition {
     private int cameraType;
 
     /**
+     *
+     */
+    private CameraBridgeViewBase.CvCameraViewListener2 cameraViewListener;
+
+    /**
      * Original image received from the camera.
      */
     private Mat originalFrame;
@@ -59,7 +69,15 @@ public class DnsRecognition {
      */
     private Mat modifedFrame;
 
+    /**
+     * Camera view.
+     */
     private JavaCameraView cameraView;
+
+    /**
+     * Collected camera frames.
+     */
+    private ArrayList<Mat> frames;
 
     /**
      * Number of frames displayed in 1 second.
@@ -70,8 +88,6 @@ public class DnsRecognition {
      * Last frame check time.
      */
     private double lastFrameTime;
-
-    private CameraBridgeViewBase.CvCameraViewListener2 cameraViewListener2;
 
     static {
         if (!OpenCVLoader.initDebug()) {
@@ -97,7 +113,11 @@ public class DnsRecognition {
         layoutParams.setMargins(0, 0, 0, 0);
         cameraView.setLayoutParams(layoutParams);
 
-        cameraViewListener2 = new CameraBridgeViewBase.CvCameraViewListener2() {
+        frames = new ArrayList<Mat>();
+
+        onCameraPermissionGranted();
+
+        cameraViewListener = new CameraBridgeViewBase.CvCameraViewListener2() {
             @Override
             public void onCameraViewStarted(int width, int height) {
                 originalFrame = new Mat(height, width, CvType.CV_8UC4);
@@ -109,9 +129,15 @@ public class DnsRecognition {
                 originalFrame.release();
             }
 
+            /**
+             * You can control/manage camera frame in this onCameraFrame method.
+             */
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-                originalFrame = inputFrame.rgba();
+                // Change camera frame to gray scale.
+                originalFrame = inputFrame.gray();
+
+                // Copy original frame info to rotate frame in android.
                 modifedFrame = originalFrame.t();
 
                 // Check camera type and modify frame.
@@ -133,13 +159,30 @@ public class DnsRecognition {
                     lastFrameTime = currentTime;
                 }
 
+                if (frames.size() >= 10) {
+                    // If more than 10 frames collected, send images to DNS OpenAPI Server.
+                    cameraView.disableView();
+                    new Thread(() -> {
+                        // Change mat to byte array and encode into base64.
+                        ArrayList<String> encodedStrings = new ArrayList<>();
+                        for (int loop = 0; loop < frames.size(); loop++) {
+                            MatOfByte matOfByte = new MatOfByte();
+                            Imgcodecs.imencode(".jpg", frames.get(loop), matOfByte);
+                            encodedStrings.add(Base64.encodeToString(matOfByte.toArray(), Base64.NO_WRAP));
+                        }
+
+                        ((Activity) context).runOnUiThread(() -> {
+                            cameraView.enableView();
+                        });
+                    }).start();
+                } else {
+                    frames.add(modifedFrame);
+                }
+
                 return modifedFrame;
             }
         };
-
-        cameraView.setCvCameraViewListener(cameraViewListener2);
-
-        onCameraPermissionGranted();
+        cameraView.setCvCameraViewListener(cameraViewListener);
 
         baseLoaderCallback = new BaseLoaderCallback(context) {
             @Override
@@ -167,9 +210,9 @@ public class DnsRecognition {
     }
 
     /**
-     * Add camera view to view group.
+     * Add camera view into view group.
      *
-     * @param viewGroup Target view group.
+     * @param viewGroup Target ViewGroup.
      */
     public void addCameraView(ViewGroup viewGroup) {
         viewGroup.addView(cameraView);
@@ -192,11 +235,27 @@ public class DnsRecognition {
     }
 
     /**
+     * Use this method inside your activity's onPause() function.
+     */
+    public void onPause() {
+        if (cameraView != null) {
+            cameraView.disableView();
+            frames.clear();
+        }
+        if (frames != null) {
+            frames.clear();
+        }
+    }
+
+    /**
      * Use this method inside your activity's onDestroy() function.
      */
     public void onDestroy() {
         if (cameraView != null) {
             cameraView.disableView();
+        }
+        if (frames != null) {
+            frames.clear();
         }
     }
 
@@ -211,15 +270,6 @@ public class DnsRecognition {
             // Load OpenCV success.
             Log.d("Load OpenCV", "OpenCV load successfully");
             baseLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-        }
-    }
-
-    /**
-     * Use this method inside your activity's onPause() function.
-     */
-    public void onPause() {
-        if (cameraView != null) {
-            cameraView.disableView();
         }
     }
 }

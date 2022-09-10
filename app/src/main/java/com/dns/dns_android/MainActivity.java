@@ -14,8 +14,6 @@ import com.dns.dns_lib.DnsRecognition;
 public class MainActivity extends AppCompatActivity {
     private boolean enable = true;
 
-    private DnsRecognition dnsRecognition;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,34 +40,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showCameraPreview() {
-        dnsRecognition = new DnsRecognition(getApplicationContext(), DnsRecognition.BACK_CAMERA);
+        DnsRecognition dnsRecognition = new DnsRecognition(getApplicationContext(), DnsRecognition.BACK_CAMERA);
 
         ConstraintLayout constraintLayout = findViewById(R.id.cl_root);
 
         dnsRecognition.addCameraView(constraintLayout);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (dnsRecognition != null) {
-            dnsRecognition.onResume();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        if (dnsRecognition != null) {
-            dnsRecognition.onPause();
-        }
-        super.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (dnsRecognition != null) {
-            dnsRecognition.onDestroy();
-        }
-        super.onDestroy();
     }
 }
