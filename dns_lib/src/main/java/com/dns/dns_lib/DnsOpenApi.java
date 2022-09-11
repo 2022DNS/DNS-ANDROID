@@ -18,15 +18,20 @@ import java.net.URL;
  * @since 1.0.0
  */
 public class DnsOpenApi extends AsyncTask<String, String, String> {
+    public static int REQ_DROWSY_DRIVING_DETECTION = 1;
+    public static int REQ_LIST_OF_DROWSY_DRIVING_AREA = 2;
+    public static int RES_DROWSY_DRIVING_DETECTION = 1001;
+    public static int RES_LIST_OF_DROWSY_DRIVING_AREA = 1002;
+
     /**
      * Http default connection timeout.
      */
-    public static int DEFAULT_CONNECTION_TIMEOUT = 2000;
+    public static String DEFAULT_CONNECTION_TIMEOUT = "2000";
 
     /**
      * Http default read timeout.
      */
-    public static int DEFAULT_READ_TIMEOUT = 2000;
+    public static String DEFAULT_READ_TIMEOUT= "2000";
 
     /**
      * Send request to url in parameter. If failed, return null.<br>
