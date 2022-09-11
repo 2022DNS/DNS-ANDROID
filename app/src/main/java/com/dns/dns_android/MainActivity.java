@@ -10,10 +10,9 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.dns.dns_lib.DnsPermission;
 import com.dns.dns_lib.DnsRecognition;
+import com.dns.dns_lib.DnsRecognitionListener;
 
 public class MainActivity extends AppCompatActivity {
-    private boolean enable = true;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,7 +39,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showCameraPreview() {
-        DnsRecognition dnsRecognition = new DnsRecognition(getApplicationContext(), DnsRecognition.BACK_CAMERA);
+        DnsRecognition dnsRecognition = new DnsRecognition(getApplicationContext(), DnsRecognition.BACK_CAMERA, new DnsRecognitionListener() {
+            @Override
+            public void detectFaceLandmarksNotCorrectlyListener() {
+
+            }
+
+            @Override
+            public void failedToDetectFaceLandmarksListener() {
+
+            }
+
+            @Override
+            public void failedToDetectFaceListener() {
+
+            }
+
+            @Override
+            public void drowsyDrivingNotDetectedListener() {
+
+            }
+
+            @Override
+            public void drowsyDrivingDetectedListener() {
+
+            }
+        });
 
         ConstraintLayout constraintLayout = findViewById(R.id.cl_root);
 
