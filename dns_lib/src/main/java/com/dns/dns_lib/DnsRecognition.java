@@ -1,6 +1,5 @@
 package com.dns.dns_lib;
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.Base64;
 import android.util.Log;
@@ -9,6 +8,9 @@ import android.view.ViewGroup;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
@@ -18,12 +20,13 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * DnsRecognition class is a class in charge of drowsiness recognition using OpenCV.
@@ -50,12 +53,21 @@ public class DnsRecognition {
     private BaseLoaderCallback baseLoaderCallback;
 
     /**
+     * Detection results.
+     */
+    public final static int DETECT_FACE_LANDMARKS_NOT_CORRECTLY = -3;
+    public final static int FAILED_TO_DETECT_FACE_LANDMARKS = -2;
+    public final static int FAILED_TO_DETECT_FACE = -1;
+    public final static int DROWSY_DRIVING_NOT_DETECTED = 0;
+    public final static int DROWSY_DRIVING_DETECTED = 1;
+
+    /**
      * Selected camera type.
      */
     private int cameraType;
 
     /**
-     *
+     * Camera view listener.
      */
     private CameraBridgeViewBase.CvCameraViewListener2 cameraViewListener;
 
@@ -89,6 +101,13 @@ public class DnsRecognition {
      */
     private double lastFrameTime;
 
+    /**
+     * Control frame converting.
+     */
+    private boolean stopConverting = false;
+
+    private DnsRecognitionListener dnsRecognitionListener;
+
     static {
         if (!OpenCVLoader.initDebug()) {
             // Load OpenCV failed.
@@ -102,21 +121,21 @@ public class DnsRecognition {
     /**
      * DnsRecognition constructor.
      *
-     * @param context    Application context.
-     * @param cameraType Camera type(Back: 0, Front_Wide: 1, Front: 2)
+     * @param context                Application context.
+     * @param cameraType             Camera type(Back: 0, Front_Wide: 1, Front: 2)
+     * @param dnsRecognitionListener Listener for recognition result.
      */
-    public DnsRecognition(Context context, int cameraType) {
+    public DnsRecognition(Context context, int cameraType, DnsRecognitionListener dnsRecognitionListener) {
+        frames = new ArrayList<>();
+        this.dnsRecognitionListener = dnsRecognitionListener;
+
+        // Set camera view.
         this.cameraType = cameraType;
         cameraView = new JavaCameraView(context, cameraType);
         cameraView.setVisibility(SurfaceView.VISIBLE);
         ConstraintLayout.LayoutParams layoutParams = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT);
         layoutParams.setMargins(0, 0, 0, 0);
         cameraView.setLayoutParams(layoutParams);
-
-        frames = new ArrayList<Mat>();
-
-        onCameraPermissionGranted();
-
         cameraViewListener = new CameraBridgeViewBase.CvCameraViewListener2() {
             @Override
             public void onCameraViewStarted(int width, int height) {
@@ -159,24 +178,55 @@ public class DnsRecognition {
                     lastFrameTime = currentTime;
                 }
 
-                if (frames.size() >= 10) {
-                    // If more than 10 frames collected, send images to DNS OpenAPI Server.
-                    cameraView.disableView();
-                    new Thread(() -> {
-                        // Change mat to byte array and encode into base64.
-                        ArrayList<String> encodedStrings = new ArrayList<>();
-                        for (int loop = 0; loop < frames.size(); loop++) {
-                            MatOfByte matOfByte = new MatOfByte();
-                            Imgcodecs.imencode(".jpg", frames.get(loop), matOfByte);
-                            encodedStrings.add(Base64.encodeToString(matOfByte.toArray(), Base64.NO_WRAP));
-                        }
+                if (stopConverting == false) {
+                    if (frames.size() == 10) {
+                        stopConverting = true;
+                        // If more than 10 frames collected, send images to DNS OpenAPI Server.
+                        new Thread(() -> {
+                            // Change mat to byte array and encode into base64.
+                            ArrayList<String> encodedStrings = new ArrayList<>();
+                            for (int loop = 0; loop < frames.size(); loop++) {
+                                MatOfByte matOfByte = new MatOfByte();
+                                Imgcodecs.imencode(".jpg", frames.get(loop), matOfByte);
+                                encodedStrings.add(Base64.encodeToString(matOfByte.toArray(), Base64.NO_WRAP));
+                            }
 
-                        ((Activity) context).runOnUiThread(() -> {
-                            cameraView.enableView();
-                        });
-                    }).start();
-                } else {
-                    frames.add(modifedFrame);
+                            // Create open api send data.
+                            JSONObject sendData = new JSONObject();
+                            try {
+                                sendData.put("request_code", DnsOpenApi.REQ_DROWSY_DRIVING_DETECTION);
+                                JSONArray images = new JSONArray();
+                                for (int loop = 0; loop < frames.size(); loop++) {
+                                    images.put(encodedStrings.get(loop));
+                                }
+                                sendData.put("images", images);
+                                String strResponse = (new DnsOpenApi().execute("", DnsOpenApi.DEFAULT_CONNECTION_TIMEOUT, DnsOpenApi.DEFAULT_READ_TIMEOUT, sendData.toString())).get();
+                                JSONObject response = new JSONObject(strResponse);
+
+                                if (response.getInt("response_code") == DnsOpenApi.RES_DROWSY_DRIVING_DETECTION) {
+                                    switch (response.getInt("result")) {
+                                        case DETECT_FACE_LANDMARKS_NOT_CORRECTLY:
+                                            break;
+                                        case FAILED_TO_DETECT_FACE_LANDMARKS:
+                                            break;
+                                        case FAILED_TO_DETECT_FACE:
+                                            break;
+                                        case DROWSY_DRIVING_NOT_DETECTED:
+                                            break;
+                                        case DROWSY_DRIVING_DETECTED:
+                                            break;
+                                    }
+                                }
+                            } catch (JSONException | ExecutionException | InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
+                            frames.clear();
+                            stopConverting = false;
+                        }).start();
+                    } else if (frames.size() < 10) {
+                        frames.add(modifedFrame);
+                    }
                 }
 
                 return modifedFrame;
@@ -197,6 +247,7 @@ public class DnsRecognition {
                 }
             }
         };
+        onCameraPermissionGranted();
         baseLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
     }
 
