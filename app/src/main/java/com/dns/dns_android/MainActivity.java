@@ -3,6 +3,9 @@ package com.dns.dns_android;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.SpeechRecognizer;
+import android.speech.tts.UtteranceProgressListener;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -12,6 +15,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.dns.dns_lib.DnsPermission;
 import com.dns.dns_lib.DnsRecognition;
 import com.dns.dns_lib.DnsRecognitionListener;
+import com.dns.dns_lib.DnsWaker;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,10 +28,86 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        String[] permissions = new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
+        DnsWaker dnsWaker = new DnsWaker(MainActivity.this);
+
+        String[] permissions = new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION};
         if (DnsPermission.requestPermissions(MainActivity.this, this, PERMISSION_REQUEST_CODE, new ArrayList<>(Arrays.asList(permissions)))) {
-            showCameraPreview();
+//            showCameraPreview();
         }
+
+        findViewById(R.id.btnSpeak).setOnClickListener(view -> {
+            dnsWaker.setSpeakEndListener(new UtteranceProgressListener() {
+                @Override
+                public void onStart(String s) {
+
+                }
+
+                @Override
+                public void onDone(String s) {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            dnsWaker.listen(MainActivity.this, new RecognitionListener() {
+                                @Override
+                                public void onReadyForSpeech(Bundle bundle) {
+                                }
+
+                                @Override
+                                public void onBeginningOfSpeech() {
+                                }
+
+                                @Override
+                                public void onRmsChanged(float v) {
+                                }
+
+                                @Override
+                                public void onBufferReceived(byte[] bytes) {
+                                }
+
+                                @Override
+                                public void onEndOfSpeech() {
+                                }
+
+                                @Override
+                                public void onError(int i) {
+                                }
+
+                                @Override
+                                public void onResults(Bundle bundle) {
+                                    ArrayList<String> words = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                                    boolean correctAnswer = false;
+                                    for (String word : words) {
+                                        if (word.contains("안자") || words.contains("앉아") || words.contains("아니")) {
+                                            correctAnswer = true;
+                                            break;
+                                        }
+                                    }
+                                    if (correctAnswer) {
+                                        dnsWaker.speak("확인되었습니다.", false);
+                                    } else {
+                                        dnsWaker.speak("졸음운전이 의심됩니다. 창문을 열거나 라디오를 트시는 걸 추천드립니다.", false);
+                                    }
+                                }
+
+                                @Override
+                                public void onPartialResults(Bundle bundle) {
+                                }
+
+                                @Override
+                                public void onEvent(int i, Bundle bundle) {
+                                }
+                            });
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String s) {
+
+                }
+            });
+            dnsWaker.speak("졸음운전이 의심됩니다. 혹시 피곤하신가요?", false);
+        });
     }
 
     @Override
