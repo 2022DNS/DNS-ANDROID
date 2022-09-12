@@ -92,6 +92,40 @@ public class DnsPermission {
     }
 
     /**
+     * Request gps permission.
+     *
+     * @param context     Context.
+     * @param activity    Activity.
+     * @param requestCode Request code for onRequestPermissionResult().
+     * @return Return true when gps permission already granted.
+     */
+    public static boolean requestGpsPermission(Context context, Activity activity, int requestCode) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // Gps permission already granted.
+            return true;
+        }
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            // Gps permission denied and need to show request permission rationale.
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+            alertDialogBuilder.setCancelable(true);
+            alertDialogBuilder.setTitle("GPS Permission");
+            alertDialogBuilder.setMessage("You need gps permission to use this service.");
+            alertDialogBuilder.setPositiveButton("Setting", (dialogInterface, i) -> {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.getPackageName(), null));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                activity.startActivity(intent);
+            });
+            alertDialogBuilder.show();
+        } else {
+            // Gps permission is not granted.
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, requestCode);
+        }
+
+        return false;
+    }
+
+    /**
      * Request permissions.
      *
      * @param context     Context.

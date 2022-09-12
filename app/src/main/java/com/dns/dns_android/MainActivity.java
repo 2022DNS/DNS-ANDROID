@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
         DnsWaker dnsWaker = new DnsWaker(MainActivity.this);
 
-        String[] permissions = new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION};
+        String[] permissions = new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
         if (DnsPermission.requestPermissions(MainActivity.this, this, PERMISSION_REQUEST_CODE, new ArrayList<>(Arrays.asList(permissions)))) {
 //            showCameraPreview();
         }
