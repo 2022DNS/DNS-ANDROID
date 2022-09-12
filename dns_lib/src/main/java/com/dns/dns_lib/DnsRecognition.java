@@ -1,6 +1,8 @@
 package com.dns.dns_lib;
 
 import android.content.Context;
+import android.location.Location;
+import android.location.LocationManager;
 import android.util.Base64;
 import android.util.Log;
 import android.view.SurfaceView;
@@ -23,8 +25,10 @@ import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -106,7 +110,20 @@ public class DnsRecognition {
      */
     private boolean stopConverting = false;
 
+    /**
+     * Dns recognition result listener.
+     */
     private DnsRecognitionListener dnsRecognitionListener;
+
+    /**
+     * Location manager for get latitude and longitude.
+     */
+    private LocationManager locationManager;
+
+    /**
+     * SimpleDateFormat used for convert time to declared format.
+     */
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     static {
         if (!OpenCVLoader.initDebug()) {
@@ -128,6 +145,7 @@ public class DnsRecognition {
     public DnsRecognition(Context context, int cameraType, DnsRecognitionListener dnsRecognitionListener) {
         frames = new ArrayList<>();
         this.dnsRecognitionListener = dnsRecognitionListener;
+        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         // Set camera view.
         this.cameraType = cameraType;
@@ -195,29 +213,44 @@ public class DnsRecognition {
                             JSONObject sendData = new JSONObject();
                             try {
                                 sendData.put("request_code", DnsOpenApi.REQ_DROWSY_DRIVING_DETECTION);
+
                                 JSONArray images = new JSONArray();
                                 for (int loop = 0; loop < frames.size(); loop++) {
                                     images.put(encodedStrings.get(loop));
                                 }
                                 sendData.put("images", images);
+
+                                sendData.put("time", simpleDateFormat.format(new Date(System.currentTimeMillis())));
+
+                                Location currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                                JSONObject areaData = new JSONObject();
+                                areaData.put("la", currentLocation.getLatitude());
+                                areaData.put("lo", currentLocation.getLongitude());
+                                sendData.put("area", areaData);
+
                                 String strResponse = (new DnsOpenApi().execute("", DnsOpenApi.DEFAULT_CONNECTION_TIMEOUT, DnsOpenApi.DEFAULT_READ_TIMEOUT, sendData.toString())).get();
                                 JSONObject response = new JSONObject(strResponse);
 
                                 if (response.getInt("response_code") == DnsOpenApi.RES_DROWSY_DRIVING_DETECTION) {
                                     switch (response.getInt("result")) {
                                         case DETECT_FACE_LANDMARKS_NOT_CORRECTLY:
+                                            dnsRecognitionListener.detectFaceLandmarksNotCorrectlyListener();
                                             break;
                                         case FAILED_TO_DETECT_FACE_LANDMARKS:
+                                            dnsRecognitionListener.failedToDetectFaceLandmarksListener();
                                             break;
                                         case FAILED_TO_DETECT_FACE:
+                                            dnsRecognitionListener.failedToDetectFaceListener();
                                             break;
                                         case DROWSY_DRIVING_NOT_DETECTED:
+                                            dnsRecognitionListener.drowsyDrivingNotDetectedListener();
                                             break;
                                         case DROWSY_DRIVING_DETECTED:
+                                            dnsRecognitionListener.drowsyDrivingDetectedListener();
                                             break;
                                     }
                                 }
-                            } catch (JSONException | ExecutionException | InterruptedException e) {
+                            } catch (JSONException | ExecutionException | InterruptedException | SecurityException e) {
                                 e.printStackTrace();
                             }
 
