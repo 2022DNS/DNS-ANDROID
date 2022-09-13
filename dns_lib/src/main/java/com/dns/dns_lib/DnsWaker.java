@@ -23,7 +23,7 @@ import java.util.Locale;
  */
 public class DnsWaker {
     /**
-     * Sample tts voice sentences.
+     * Sample sentences for tts.
      */
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_CHECK_SENTENCE = "혹시 피곤하신가요?";
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_NOT_SLEEPING = "확인되었습니다.";
@@ -78,11 +78,11 @@ public class DnsWaker {
     /**
      * Speak with text to speech.
      *
-     * @param content           Content to speak with tts.
+     * @param sentence          Sentence to speak with tts.
      * @param stopPreviousSpeak Stop previous speak and speak current content.
      */
-    public void speak(String content, boolean stopPreviousSpeak) {
-        textToSpeech.speak(content, stopPreviousSpeak ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, null, "tts");
+    public void speak(String sentence, boolean stopPreviousSpeak) {
+        textToSpeech.speak(sentence, stopPreviousSpeak ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, null, "tts");
     }
 
     /**
@@ -96,6 +96,26 @@ public class DnsWaker {
             speechRecognizer.setRecognitionListener(recognizerListener);
             speechRecognizer.startListening(speechRecognizerIntent);
         });
+    }
+
+    /**
+     * Alert to driver with provided sound resource when drowsy driving detected.
+     *
+     * @param context              Context.
+     * @param alertSoundResourceId Alert sound resource id.
+     * @param sentence             Sentence to speak.
+     * @param speakAfterSound      Speak sentence after alert sound end.
+     */
+    public void alert(Context context, int alertSoundResourceId, String sentence, boolean speakAfterSound) {
+        MediaPlayer mediaPlayer = MediaPlayer.create(context, alertSoundResourceId);
+        if (speakAfterSound) {
+            mediaPlayer.setOnCompletionListener(mediaPlayer1 -> {
+                speak(sentence, false);
+            });
+        } else {
+            speak(sentence, false);
+        }
+        mediaPlayer.start();
     }
 
     /**
@@ -140,11 +160,7 @@ public class DnsWaker {
                         // User not response.
                         if (alertSoundResourceId != -1) {
                             // Alert sound.
-                            MediaPlayer mediaPlayer = MediaPlayer.create(context, alertSoundResourceId);
-                            mediaPlayer.setOnCompletionListener(mediaPlayer1 -> {
-                                speak(SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, false);
-                            });
-                            mediaPlayer.start();
+                            alert(context, alertSoundResourceId, SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, true);
                         } else {
                             speak(SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, false);
                         }
@@ -174,11 +190,7 @@ public class DnsWaker {
                         // User speak wrong words.
                         if (alertSoundResourceId != -1) {
                             // Alert sound.
-                            MediaPlayer mediaPlayer = MediaPlayer.create(context, alertSoundResourceId);
-                            mediaPlayer.setOnCompletionListener(mediaPlayer1 -> {
-                                speak(SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, false);
-                            });
-                            mediaPlayer.start();
+                            alert(context, alertSoundResourceId, SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, true);
                         } else {
                             speak(SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, false);
                         }
