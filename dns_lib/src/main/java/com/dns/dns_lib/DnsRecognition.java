@@ -37,6 +37,25 @@ import java.util.concurrent.ExecutionException;
  * @since 1.0.0
  */
 public class DnsRecognition {
+    static {
+        if (!OpenCVLoader.initDebug()) {
+            // Load OpenCV failed.
+            Log.e("Load OpenCV", "Failed to load OpenCV");
+        } else {
+            // Load OpenCV success.
+            Log.d("Load OpenCV", "OpenCV load successfully");
+        }
+    }
+
+    /**
+     * Detection results.
+     */
+    public final static int DETECT_FACE_LANDMARKS_NOT_CORRECTLY = -3;
+    public final static int FAILED_TO_DETECT_FACE_LANDMARKS = -2;
+    public final static int FAILED_TO_DETECT_FACE = -1;
+    public final static int DROWSY_DRIVING_NOT_DETECTED = 0;
+    public final static int DROWSY_DRIVING_DETECTED = 1;
+
     /**
      * Back camera.
      */
@@ -53,68 +72,55 @@ public class DnsRecognition {
     public final static int FRONT_CAMERA = 2;
 
     /**
-     * Detection results.
-     */
-    public final static int DETECT_FACE_LANDMARKS_NOT_CORRECTLY = -3;
-    public final static int FAILED_TO_DETECT_FACE_LANDMARKS = -2;
-    public final static int FAILED_TO_DETECT_FACE = -1;
-    public final static int DROWSY_DRIVING_NOT_DETECTED = 0;
-    public final static int DROWSY_DRIVING_DETECTED = 1;
-
-    static {
-        if (!OpenCVLoader.initDebug()) {
-            // Load OpenCV failed.
-            Log.e("Load OpenCV", "Failed to load OpenCV");
-        } else {
-            // Load OpenCV success.
-            Log.d("Load OpenCV", "OpenCV load successfully");
-        }
-    }
-
-    /**
-     * Selected camera type.
-     */
-    private final int cameraType;
-    /**
      * Camera view listener.
      */
     private final CameraBridgeViewBase.CvCameraViewListener2 cameraViewListener;
+
     /**
      * Original image received from the camera.
      */
     private Mat originalFrame;
+
     /**
      * Modified image with rotation and flip effects applied to make it look right on Android.
      */
     private Mat modifedFrame;
+
     /**
      * Camera view.
      */
     private final JavaCameraView cameraView;
+
     /**
      * Collected camera frames.
      */
     private final ArrayList<Mat> frames;
+
     /**
      * Number of frames displayed in 1 second.
      */
     private int frameCount = 0;
+
     /**
      * Last frame check time.
      */
     private double lastFrameTime;
+
     /**
      * Control frame converting.
      */
     private boolean stopConverting = false;
+
     /**
      * Dns recognition result listener.
      */
     private final DnsRecognitionListener dnsRecognitionListener;
+
     /**
      * Location manager for get latitude and longitude.
      */
     private final LocationManager locationManager;
+
     /**
      * SimpleDateFormat used for convert time to declared format.
      */
@@ -133,7 +139,6 @@ public class DnsRecognition {
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         // Set camera view.
-        this.cameraType = cameraType;
         cameraView = new JavaCameraView(context, cameraType);
         cameraView.setVisibility(SurfaceView.VISIBLE);
         ConstraintLayout.LayoutParams layoutParams = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT);
@@ -262,13 +267,30 @@ public class DnsRecognition {
         };
         cameraView.setCvCameraViewListener(cameraViewListener);
 
-        onCameraPermissionGranted();
+        // Check camera state and permission.
+        List<? extends CameraBridgeViewBase> cameraViews = Collections.singletonList(cameraView);
+        if (cameraViews == null) {
+            Log.d("Check Camera", "No camera available");
+            return;
+        }
+        Log.d("Check Camera", "Camera count: " + cameraViews.size());
+        for (CameraBridgeViewBase cameraBridgeViewBase : cameraViews) {
+            if (cameraBridgeViewBase != null) {
+                cameraBridgeViewBase.setCameraPermissionGranted();
+            }
+        }
     }
 
+    /**
+     * Start drowsy driving recognition.
+     */
     public void startRecognition() {
         cameraView.enableView();
     }
 
+    /**
+     * Stop drowsy driving recognition.
+     */
     public void stopRecognition() {
         cameraView.disableView();
     }
@@ -280,22 +302,6 @@ public class DnsRecognition {
      */
     public void addCameraView(ViewGroup viewGroup) {
         viewGroup.addView(cameraView);
-    }
-
-    protected void onCameraPermissionGranted() {
-        List<? extends CameraBridgeViewBase> cameraViews = Collections.singletonList(cameraView);
-
-        if (cameraViews == null) {
-            Log.d("Check Camera", "No camera available");
-            return;
-        }
-
-        Log.d("Check Camera", "Camera count: " + cameraViews.size());
-        for (CameraBridgeViewBase cameraBridgeViewBase : cameraViews) {
-            if (cameraBridgeViewBase != null) {
-                cameraBridgeViewBase.setCameraPermissionGranted();
-            }
-        }
     }
 
     /**
