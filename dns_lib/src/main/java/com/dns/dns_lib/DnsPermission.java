@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DnsPermission class is for easily obtaining camera permission. If the permission is denied, it moves to the application permission setting screen through its own dialog.
+ * DnsPermission class is for easily obtaining permission. If the permission is denied, it moves to the application permission setting screen through its own dialog.
  *
  * @author Sohn Young Jin
  * @since 1.0.0
