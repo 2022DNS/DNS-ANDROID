@@ -18,15 +18,21 @@ import java.net.URL;
  * @since 1.0.0
  */
 public class DnsOpenApi extends AsyncTask<String, String, String> {
+    public final static String DNS_OPENAPI_SERVER = "http://dndd-alb-241951613.ap-northeast-2.elb.amazonaws.com";
+    public final static int REQ_DROWSY_DRIVING_DETECTION = 1;
+    public final static int REQ_LIST_OF_DROWSY_DRIVING_AREA = 2;
+    public final static int RES_DROWSY_DRIVING_DETECTION = 1001;
+    public final static int RES_LIST_OF_DROWSY_DRIVING_AREA = 1002;
+
     /**
      * Http default connection timeout.
      */
-    public static int DEFAULT_CONNECTION_TIMEOUT = 2000;
+    public static String DEFAULT_CONNECTION_TIMEOUT = "2000";
 
     /**
      * Http default read timeout.
      */
-    public static int DEFAULT_READ_TIMEOUT = 2000;
+    public static String DEFAULT_READ_TIMEOUT = "2000";
 
     /**
      * Send request to url in parameter. If failed, return null.<br>
@@ -45,20 +51,32 @@ public class DnsOpenApi extends AsyncTask<String, String, String> {
         try {
             URL url = new URL(strings[0]);
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-            httpURLConnection.setDoOutput(true);
-            httpURLConnection.setDoInput(true);
-            httpURLConnection.setRequestMethod("POST");
-            httpURLConnection.setRequestProperty("Content-Type", "application/json");
-            httpURLConnection.setRequestProperty("Accept", "application/json");
-            httpURLConnection.setConnectTimeout(Integer.valueOf(strings[1]));
-            httpURLConnection.setReadTimeout(Integer.valueOf(strings[2]));
-            httpURLConnection.connect();
+            if (strings[0].contains("/detection")) {
+                // Detection request.
+                httpURLConnection.setDoOutput(true);
+                httpURLConnection.setDoInput(true);
+                httpURLConnection.setRequestMethod("POST");
+                httpURLConnection.setRequestProperty("Content-Type", "application/json");
+                httpURLConnection.setRequestProperty("Accept", "application/json");
+                httpURLConnection.setConnectTimeout(Integer.valueOf(strings[1]));
+                httpURLConnection.setReadTimeout(Integer.valueOf(strings[2]));
+                httpURLConnection.connect();
 
-            OutputStream outputStream = httpURLConnection.getOutputStream();
-            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
-            bufferedWriter.write(strings[3]);
-            bufferedWriter.flush();
-            bufferedWriter.close();
+                OutputStream outputStream = httpURLConnection.getOutputStream();
+                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+                bufferedWriter.write(strings[3]);
+                bufferedWriter.flush();
+                bufferedWriter.close();
+            } else if (strings[0].contains("/coordinate")) {
+                // Drowsy driving warning area detail.
+                httpURLConnection.setDoInput(true);
+                httpURLConnection.setRequestMethod("GET");
+                httpURLConnection.setRequestProperty("Content-Type", "application/json");
+                httpURLConnection.setRequestProperty("Accept", "application/json");
+                httpURLConnection.setConnectTimeout(Integer.valueOf(strings[1]));
+                httpURLConnection.setReadTimeout(Integer.valueOf(strings[2]));
+                httpURLConnection.connect();
+            }
 
             InputStream inputStream = httpURLConnection.getInputStream();
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
