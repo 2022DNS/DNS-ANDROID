@@ -13,10 +13,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
-import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -53,8 +51,6 @@ public class DnsRecognition {
      * Front camera.
      */
     public final static int FRONT_CAMERA = 2;
-
-    private BaseLoaderCallback baseLoaderCallback;
 
     /**
      * Detection results.
@@ -154,6 +150,7 @@ public class DnsRecognition {
         ConstraintLayout.LayoutParams layoutParams = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT);
         layoutParams.setMargins(0, 0, 0, 0);
         cameraView.setLayoutParams(layoutParams);
+        cameraView.disableView();
         cameraViewListener = new CameraBridgeViewBase.CvCameraViewListener2() {
             @Override
             public void onCameraViewStarted(int width, int height) {
@@ -164,6 +161,7 @@ public class DnsRecognition {
             @Override
             public void onCameraViewStopped() {
                 originalFrame.release();
+                modifedFrame.release();
             }
 
             /**
@@ -171,6 +169,14 @@ public class DnsRecognition {
              */
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+                // Release before frame to prevent from memory leak.
+                if (originalFrame != null) {
+                    originalFrame.release();
+                }
+                if (modifedFrame != null) {
+                    modifedFrame.release();
+                }
+
                 // Change camera frame to gray scale.
                 originalFrame = inputFrame.gray();
 
@@ -180,10 +186,10 @@ public class DnsRecognition {
                 // Check camera type and modify frame.
                 if (cameraType == 0) {
                     // If selected camera type is back camera.
-                    Core.flip(originalFrame.t(), modifedFrame, 1);
+                    Core.flip(modifedFrame, modifedFrame, 1);
                 } else if (cameraType == 1 || cameraType == 2) {
                     // If selected camera type is front camera.
-                    Core.flip(originalFrame.t(), modifedFrame, -1);
+                    Core.flip(modifedFrame, modifedFrame, -1);
                 }
                 Imgproc.resize(modifedFrame, modifedFrame, originalFrame.size());
 
@@ -267,30 +273,15 @@ public class DnsRecognition {
         };
         cameraView.setCvCameraViewListener(cameraViewListener);
 
-        baseLoaderCallback = new BaseLoaderCallback(context) {
-            @Override
-            public void onManagerConnected(int status) {
-                switch (status) {
-                    case BaseLoaderCallback.SUCCESS:
-                        cameraView.enableView();
-                        break;
-                    default:
-                        super.onManagerConnected(status);
-                        break;
-                }
-            }
-        };
         onCameraPermissionGranted();
-        baseLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
     }
 
-    /**
-     * Get camera preview widget. It is recommended that this view be included in ConstraintLayout.
-     *
-     * @return Camera preview widget.
-     */
-    public JavaCameraView getCameraView() {
-        return cameraView;
+    public void startRecognition() {
+        cameraView.enableView();
+    }
+
+    public void stopRecognition() {
+        cameraView.disableView();
     }
 
     /**
@@ -353,7 +344,6 @@ public class DnsRecognition {
         } else {
             // Load OpenCV success.
             Log.d("Load OpenCV", "OpenCV load successfully");
-            baseLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     }
 }
