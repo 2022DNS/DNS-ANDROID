@@ -18,7 +18,7 @@ import java.net.URL;
  * @since 1.0.0
  */
 public class DnsOpenApi extends AsyncTask<String, String, String> {
-    public final static String DNS_OPENAPI_SERVER = "http://dndd-alb-241951613.ap-northeast-2.elb.amazonaws.com/";
+    public final static String DNS_OPENAPI_SERVER = "http://dndd-alb-241951613.ap-northeast-2.elb.amazonaws.com";
     public final static int REQ_DROWSY_DRIVING_DETECTION = 1;
     public final static int REQ_LIST_OF_DROWSY_DRIVING_AREA = 2;
     public final static int RES_DROWSY_DRIVING_DETECTION = 1001;
@@ -67,28 +67,33 @@ public class DnsOpenApi extends AsyncTask<String, String, String> {
                 bufferedWriter.write(strings[3]);
                 bufferedWriter.flush();
                 bufferedWriter.close();
-
-                InputStream inputStream = httpURLConnection.getInputStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-
-                StringBuffer stringBuffer = new StringBuffer();
-                String line;
-
-                while ((line = bufferedReader.readLine()) != null) {
-                    stringBuffer.append(line);
-                }
-
-                httpURLConnection.disconnect();
-
-                String result = stringBuffer.toString();
-                result = result.substring(1, result.length() - 1).replace("\\", "");
-
-                return result;
-            } else if (strings[0].contains("/coordinate/la/lo")) {
+            } else if (strings[0].contains("/coordinate")) {
                 // Drowsy driving warning area detail.
-            } else {
-                // Drowsy driving warning area list.
+                httpURLConnection.setDoInput(true);
+                httpURLConnection.setRequestMethod("GET");
+                httpURLConnection.setRequestProperty("Content-Type", "application/json");
+                httpURLConnection.setRequestProperty("Accept", "application/json");
+                httpURLConnection.setConnectTimeout(Integer.valueOf(strings[1]));
+                httpURLConnection.setReadTimeout(Integer.valueOf(strings[2]));
+                httpURLConnection.connect();
             }
+
+            InputStream inputStream = httpURLConnection.getInputStream();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+
+            StringBuffer stringBuffer = new StringBuffer();
+            String line;
+
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuffer.append(line);
+            }
+
+            httpURLConnection.disconnect();
+
+            String result = stringBuffer.toString();
+            result = result.substring(1, result.length() - 1).replace("\\", "");
+
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
