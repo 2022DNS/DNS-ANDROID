@@ -17,12 +17,12 @@ import java.util.Locale;
 
 public class DnsWaker {
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_CHECK_SENTENCE = "혹시 피곤하신가요?";
-    private TextToSpeech textToSpeech;
-    private SpeechRecognizer speechRecognizer;
-    private Intent speechRecognizerIntent;
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_NOT_SLEEPING = "확인되었습니다.";
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING = "창문을 열거나 신나는 노래를 들으시는걸 추천드립니다.";
     private final ArrayList<String> checkWords = new ArrayList<>(Arrays.asList("아니", "안자", "안피곤", "안 피곤"));
+    private TextToSpeech textToSpeech;
+    private final SpeechRecognizer speechRecognizer;
+    private final Intent speechRecognizerIntent;
 
     public DnsWaker(Context context) {
         textToSpeech = new TextToSpeech(context, status -> {

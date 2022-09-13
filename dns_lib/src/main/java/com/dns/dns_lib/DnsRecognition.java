@@ -61,66 +61,6 @@ public class DnsRecognition {
     public final static int DROWSY_DRIVING_NOT_DETECTED = 0;
     public final static int DROWSY_DRIVING_DETECTED = 1;
 
-    /**
-     * Selected camera type.
-     */
-    private int cameraType;
-
-    /**
-     * Camera view listener.
-     */
-    private CameraBridgeViewBase.CvCameraViewListener2 cameraViewListener;
-
-    /**
-     * Original image received from the camera.
-     */
-    private Mat originalFrame;
-
-    /**
-     * Modified image with rotation and flip effects applied to make it look right on Android.
-     */
-    private Mat modifedFrame;
-
-    /**
-     * Camera view.
-     */
-    private JavaCameraView cameraView;
-
-    /**
-     * Collected camera frames.
-     */
-    private ArrayList<Mat> frames;
-
-    /**
-     * Number of frames displayed in 1 second.
-     */
-    private int frameCount = 0;
-
-    /**
-     * Last frame check time.
-     */
-    private double lastFrameTime;
-
-    /**
-     * Control frame converting.
-     */
-    private boolean stopConverting = false;
-
-    /**
-     * Dns recognition result listener.
-     */
-    private DnsRecognitionListener dnsRecognitionListener;
-
-    /**
-     * Location manager for get latitude and longitude.
-     */
-    private LocationManager locationManager;
-
-    /**
-     * SimpleDateFormat used for convert time to declared format.
-     */
-    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
     static {
         if (!OpenCVLoader.initDebug()) {
             // Load OpenCV failed.
@@ -130,6 +70,55 @@ public class DnsRecognition {
             Log.d("Load OpenCV", "OpenCV load successfully");
         }
     }
+
+    /**
+     * Selected camera type.
+     */
+    private final int cameraType;
+    /**
+     * Camera view listener.
+     */
+    private final CameraBridgeViewBase.CvCameraViewListener2 cameraViewListener;
+    /**
+     * Original image received from the camera.
+     */
+    private Mat originalFrame;
+    /**
+     * Modified image with rotation and flip effects applied to make it look right on Android.
+     */
+    private Mat modifedFrame;
+    /**
+     * Camera view.
+     */
+    private final JavaCameraView cameraView;
+    /**
+     * Collected camera frames.
+     */
+    private final ArrayList<Mat> frames;
+    /**
+     * Number of frames displayed in 1 second.
+     */
+    private int frameCount = 0;
+    /**
+     * Last frame check time.
+     */
+    private double lastFrameTime;
+    /**
+     * Control frame converting.
+     */
+    private boolean stopConverting = false;
+    /**
+     * Dns recognition result listener.
+     */
+    private final DnsRecognitionListener dnsRecognitionListener;
+    /**
+     * Location manager for get latitude and longitude.
+     */
+    private final LocationManager locationManager;
+    /**
+     * SimpleDateFormat used for convert time to declared format.
+     */
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
      * DnsRecognition constructor.
