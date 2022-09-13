@@ -15,15 +15,45 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
 
+/**
+ * DnsWaker provides a method for waking the driver. You can also implement new notification logic using internal methods such as speak and listen.
+ *
+ * @author Sohn Young Jin
+ * @since 1.0.0
+ */
 public class DnsWaker {
+    /**
+     * Sample tts voice sentences.
+     */
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_CHECK_SENTENCE = "혹시 피곤하신가요?";
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_NOT_SLEEPING = "확인되었습니다.";
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING = "창문을 열거나 신나는 노래를 들으시는걸 추천드립니다.";
-    private final ArrayList<String> checkWords = new ArrayList<>(Arrays.asList("아니", "안자", "안피곤", "안 피곤"));
+
+    /**
+     * Recognize words for check drowsy driving state.
+     */
+    private final ArrayList<String> checkWords = new ArrayList<>(Arrays.asList("아니", "안자", "안피곤", "안 피곤", "앉아"));
+
+    /**
+     * Text to speech.
+     */
     private TextToSpeech textToSpeech;
+
+    /**
+     * Speak recognizer.
+     */
     private final SpeechRecognizer speechRecognizer;
+
+    /**
+     * Intent for speech recognizer.
+     */
     private final Intent speechRecognizerIntent;
 
+    /**
+     * DnsWaker constructor.
+     *
+     * @param context Context.
+     */
     public DnsWaker(Context context) {
         textToSpeech = new TextToSpeech(context, status -> {
             if (status == TextToSpeech.SUCCESS) {
@@ -45,10 +75,22 @@ public class DnsWaker {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context);
     }
 
+    /**
+     * Speak with text to speech.
+     *
+     * @param content           Content to speak with tts.
+     * @param stopPreviousSpeak Stop previous speak and speak current content.
+     */
     public void speak(String content, boolean stopPreviousSpeak) {
         textToSpeech.speak(content, stopPreviousSpeak ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, null, "tts");
     }
 
+    /**
+     * Recognize voice with speech recognizer.
+     *
+     * @param context            Context.
+     * @param recognizerListener Recognize listener.
+     */
     public void listen(Context context, RecognitionListener recognizerListener) {
         ((Activity) context).runOnUiThread(() -> {
             speechRecognizer.setRecognitionListener(recognizerListener);
@@ -56,6 +98,13 @@ public class DnsWaker {
         });
     }
 
+    /**
+     * Example of voice recognize waker.
+     *
+     * @param context               Context.
+     * @param speakCheckPassedVoice Speak check voice when driver pass the test.
+     * @param alertSoundResourceId  Alert sound resource id for alert when detected driver drowsy driving.
+     */
     public void runVoiceRecognizeWakerExample(Context context, boolean speakCheckPassedVoice, int alertSoundResourceId) {
         new Thread(() -> {
             speak(SAMPLE_TTS_VOICE_RECOGNIZE_CHECK_SENTENCE, false);
