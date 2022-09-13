@@ -164,7 +164,7 @@ public class DnsPermission {
      * @return Return true when permissions already granted.
      */
     public static boolean requestDnsPermissions(Context context, Activity activity, int requestCode) {
-        ArrayList<String> permissions = new ArrayList<>(Arrays.asList(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
+        ArrayList<String> permissions = new ArrayList<>(Arrays.asList(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}));
         return requestPermissions(context, activity, requestCode, permissions);
     }
 }
