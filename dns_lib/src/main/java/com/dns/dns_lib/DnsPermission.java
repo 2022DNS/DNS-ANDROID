@@ -13,6 +13,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -139,16 +140,31 @@ public class DnsPermission {
 
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                // Permission is not granted.
                 notGrantedPermissions.add(permission);
             }
         }
 
         if (notGrantedPermissions.size() == 0) {
+            // All permission is granted.
             return true;
         }
 
         ActivityCompat.requestPermissions(activity, notGrantedPermissions.toArray(new String[notGrantedPermissions.size()]), requestCode);
 
         return false;
+    }
+
+    /**
+     * Request DNS permissions.
+     *
+     * @param context     Context.
+     * @param activity    Activity.
+     * @param requestCode Request Code for onRequestPermissionResult().
+     * @return Return true when permissions already granted.
+     */
+    public static boolean requestDnsPermissions(Context context, Activity activity, int requestCode) {
+        ArrayList<String> permissions = new ArrayList<>(Arrays.asList(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
+        return requestPermissions(context, activity, requestCode, permissions);
     }
 }
