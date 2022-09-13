@@ -1,5 +1,6 @@
 package com.dns.dns_lib;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.speech.RecognitionListener;
@@ -42,9 +43,11 @@ public class DnsWaker {
     }
 
     public void listen(Context context, RecognitionListener recognizerListener) {
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context);
-        speechRecognizer.setRecognitionListener(recognizerListener);
-        speechRecognizer.startListening(speechRecognizerIntent);
+        ((Activity)context).runOnUiThread(() -> {
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context);
+            speechRecognizer.setRecognitionListener(recognizerListener);
+            speechRecognizer.startListening(speechRecognizerIntent);
+        });
     }
 
     public void setSpeakEndListener(UtteranceProgressListener utteranceProgressListener) {
