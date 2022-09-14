@@ -228,7 +228,7 @@ public class DnsRecognition {
                                 areaData.put("lo", currentLocation.getLongitude());
                                 sendData.put("area", areaData);
 
-                                String strResponse = (new DnsOpenApi().execute("", DnsOpenApi.DEFAULT_CONNECTION_TIMEOUT, DnsOpenApi.DEFAULT_READ_TIMEOUT, sendData.toString())).get();
+                                String strResponse = (new DnsOpenApi().execute(DnsOpenApi.DNS_OPENAPI_SERVER + "/detection", DnsOpenApi.DEFAULT_CONNECTION_TIMEOUT, DnsOpenApi.DEFAULT_READ_TIMEOUT, sendData.toString())).get();
                                 JSONObject response = new JSONObject(strResponse);
 
                                 if (response.getInt("response_code") == DnsOpenApi.RES_DROWSY_DRIVING_DETECTION) {
