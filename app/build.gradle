@@ -5,6 +5,10 @@ plugins {
 android {
     compileSdk 32
 
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def google_mapapi_key = properties.getProperty('google.mapapi.key')
+
     defaultConfig {
         applicationId "com.dns.dns_android"
         minSdk 26
@@ -13,6 +17,7 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders = [googleMapApiKey: google_mapapi_key]
     }
 
     buildTypes {
@@ -36,4 +41,6 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     implementation project(':dns_lib')
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    implementation 'com.google.android.gms:play-services-location:20.0.0'
 }

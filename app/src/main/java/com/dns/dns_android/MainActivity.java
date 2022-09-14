@@ -12,11 +12,16 @@ import com.dns.dns_lib.DnsPermission;
 import com.dns.dns_lib.DnsRecognition;
 import com.dns.dns_lib.DnsRecognitionListener;
 import com.dns.dns_lib.DnsWaker;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
     private final int PERMISSION_REQUEST_CODE = 100;
     private DnsRecognition dnsRecognition;
     private DnsWaker dnsWaker;
+    private GoogleMap googleMap;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +36,8 @@ public class MainActivity extends AppCompatActivity {
         // Create DnsWaker object.
         dnsWaker = new DnsWaker(MainActivity.this);
 
-        findViewById(R.id.btnSpeak).setOnClickListener(view -> {
-            dnsWaker.runVoiceRecognizeWakerExample(MainActivity.this, false, -1);
-        });
+        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_view);
+        supportMapFragment.getMapAsync(this);
     }
 
     @Override
@@ -78,9 +82,10 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
 
-        ConstraintLayout constraintLayout = findViewById(R.id.cl_root);
-        dnsRecognition.addCameraView(constraintLayout);
-        dnsRecognition.startRecognition();
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        this.googleMap = googleMap;
     }
 }
