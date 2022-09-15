@@ -5,10 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -25,7 +27,7 @@ public class DnsWaker {
     /**
      * Sample sentences for tts.
      */
-    public static String SAMPLE_TTS_VOICE_RECOGNIZE_CHECK_SENTENCE = "혹시 피곤하신가요?";
+    public static String SAMPLE_TTS_VOICE_RECOGNIZE_CHECK_SENTENCE = "졸음운전이 감지되었습니다. 피곤하지 않다고 말하지 않을 경우 알림이 울립니다.";
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_NOT_SLEEPING = "확인되었습니다.";
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING = "창문을 열거나 신나는 노래를 들으시는걸 추천드립니다.";
 
@@ -64,7 +66,7 @@ public class DnsWaker {
                     Log.d("TTS Initialization", "TTS initialized successfully.");
                 }
                 textToSpeech.setPitch(0.5f);
-                textToSpeech.setSpeechRate(1.0f);
+                textToSpeech.setSpeechRate(1.2f);
             } else {
                 Log.e("TTS Initialization", "TTS initialize failed.");
             }
@@ -108,6 +110,7 @@ public class DnsWaker {
      */
     public void alert(Context context, int alertSoundResourceId, String sentence, boolean speakAfterSound) {
         MediaPlayer mediaPlayer = MediaPlayer.create(context, alertSoundResourceId);
+        mediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
         if (speakAfterSound) {
             mediaPlayer.setOnCompletionListener(mediaPlayer1 -> {
                 speak(sentence, false);
@@ -125,86 +128,98 @@ public class DnsWaker {
      * @param speakCheckPassedVoice Speak check voice when driver pass the test.
      * @param alertSoundResourceId  Alert sound resource id for alert when detected driver drowsy driving.
      */
-    public void runVoiceRecognizeWakerExample(Context context, boolean speakCheckPassedVoice, int alertSoundResourceId) {
-        new Thread(() -> {
-            speak(SAMPLE_TTS_VOICE_RECOGNIZE_CHECK_SENTENCE, false);
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+    public void runVoiceRecognizeWakerExample(Context context, boolean speakCheckPassedVoice, int alertSoundResourceId, DnsWakerListener dnsWakerListener, UtteranceProgressListener warningEndListener) {
+        textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String s) {
+
             }
-            listen(context, new RecognitionListener() {
-                @Override
-                public void onReadyForSpeech(Bundle bundle) {
-                }
 
-                @Override
-                public void onBeginningOfSpeech() {
-                }
+            @Override
+            public void onDone(String s) {
+                textToSpeech.setOnUtteranceProgressListener(warningEndListener);
+                listen(context, new RecognitionListener() {
+                    @Override
+                    public void onReadyForSpeech(Bundle bundle) {
+                    }
 
-                @Override
-                public void onRmsChanged(float v) {
-                }
+                    @Override
+                    public void onBeginningOfSpeech() {
+                    }
 
-                @Override
-                public void onBufferReceived(byte[] bytes) {
-                }
+                    @Override
+                    public void onRmsChanged(float v) {
+                    }
 
-                @Override
-                public void onEndOfSpeech() {
-                }
+                    @Override
+                    public void onBufferReceived(byte[] bytes) {
+                    }
 
-                @Override
-                public void onError(int errorCode) {
-                    if (errorCode == SpeechRecognizer.ERROR_NO_MATCH) {
-                        // User not response.
-                        if (alertSoundResourceId != -1) {
-                            // Alert sound.
-                            alert(context, alertSoundResourceId, SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, true);
-                        } else {
-                            speak(SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, false);
+                    @Override
+                    public void onEndOfSpeech() {
+                    }
+
+                    @Override
+                    public void onError(int errorCode) {
+                        if (errorCode == SpeechRecognizer.ERROR_NO_MATCH) {
+                            // User not response.
+                            if (alertSoundResourceId != -1) {
+                                // Alert sound.
+                                alert(context, alertSoundResourceId, SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, true);
+                            } else {
+                                speak(SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, false);
+                            }
+                            dnsWakerListener.onDriverPassedTestFailed();
                         }
                     }
-                }
 
-                @Override
-                public void onResults(Bundle bundle) {
-                    ArrayList<String> words = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    boolean correctAnswer = false;
-                    for (String word : words) {
-                        for (String checkWord : checkWords) {
-                            if (word.contains(checkWord)) {
-                                correctAnswer = true;
-                                break;
+                    @Override
+                    public void onResults(Bundle bundle) {
+                        ArrayList<String> words = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                        boolean correctAnswer = false;
+                        for (String word : words) {
+                            for (String checkWord : checkWords) {
+                                if (word.contains(checkWord)) {
+                                    correctAnswer = true;
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    if (correctAnswer) {
-                        // Check words contain word spoken by the user.
-                        if (speakCheckPassedVoice) {
-                            // Speak check passed voice is true.
-                            speak(SAMPLE_TTS_VOICE_RECOGNIZE_NOT_SLEEPING, false);
-                        }
-                    } else {
-                        // User speak wrong words.
-                        if (alertSoundResourceId != -1) {
-                            // Alert sound.
-                            alert(context, alertSoundResourceId, SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, true);
+                        if (correctAnswer) {
+                            // Check words contain word spoken by the user.
+                            if (speakCheckPassedVoice) {
+                                // Speak check passed voice is true.
+                                speak(SAMPLE_TTS_VOICE_RECOGNIZE_NOT_SLEEPING, false);
+                            }
+                            dnsWakerListener.onDriverPassedTestSuccessfully();
                         } else {
-                            speak(SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, false);
+                            // User speak wrong words.
+                            if (alertSoundResourceId != -1) {
+                                // Alert sound.
+                                alert(context, alertSoundResourceId, SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, true);
+                            } else {
+                                speak(SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING, false);
+                            }
+                            dnsWakerListener.onDriverPassedTestFailed();
                         }
                     }
-                }
 
-                @Override
-                public void onPartialResults(Bundle bundle) {
-                }
+                    @Override
+                    public void onPartialResults(Bundle bundle) {
+                    }
 
-                @Override
-                public void onEvent(int i, Bundle bundle) {
-                }
-            });
-        }).start();
+                    @Override
+                    public void onEvent(int i, Bundle bundle) {
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String s) {
+
+            }
+        });
+        speak(SAMPLE_TTS_VOICE_RECOGNIZE_CHECK_SENTENCE, false);
     }
 }
