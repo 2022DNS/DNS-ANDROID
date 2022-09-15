@@ -27,7 +27,7 @@ public class DnsWaker {
     /**
      * Sample sentences for tts.
      */
-    public static String SAMPLE_TTS_VOICE_RECOGNIZE_CHECK_SENTENCE = "졸음운전이 감지되었습니다. 피곤하지 않다고 말하지 않을 경우 알림이 울립니다.";
+    public static String SAMPLE_TTS_VOICE_RECOGNIZE_CHECK_SENTENCE = "졸음운전이 감지되었습니다.";
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_NOT_SLEEPING = "확인되었습니다.";
     public static String SAMPLE_TTS_VOICE_RECOGNIZE_SLEEPING = "창문을 열거나 신나는 노래를 들으시는걸 추천드립니다.";
 
