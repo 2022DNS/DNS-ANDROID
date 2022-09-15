@@ -23,10 +23,8 @@ import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -97,19 +95,9 @@ public class DnsRecognition {
     private final ArrayList<Mat> frames;
 
     /**
-     * Number of frames displayed in 1 second.
+     * Recognizing state.
      */
-    private int frameCount = 0;
-
-    /**
-     * Last frame check time.
-     */
-    private double lastFrameTime;
-
-    /**
-     * Control frame converting.
-     */
-    private boolean stopConverting = false;
+    private boolean recognizing = false;
 
     /**
      * Dns recognition result listener.
@@ -120,11 +108,6 @@ public class DnsRecognition {
      * Location manager for get latitude and longitude.
      */
     private final LocationManager locationManager;
-
-    /**
-     * SimpleDateFormat used for convert time to declared format.
-     */
-    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
      * DnsRecognition constructor.
@@ -149,7 +132,6 @@ public class DnsRecognition {
             @Override
             public void onCameraViewStarted(int width, int height) {
                 originalFrame = new Mat(height, width, CvType.CV_8UC4);
-                lastFrameTime = System.currentTimeMillis();
             }
 
             @Override
@@ -185,21 +167,12 @@ public class DnsRecognition {
                     // If selected camera type is front camera.
                     Core.flip(modifedFrame, modifedFrame, -1);
                 }
-                Imgproc.resize(modifedFrame, modifedFrame, originalFrame.size());
 
-                // Check camera frame.
-                frameCount++;
-                double currentTime = System.currentTimeMillis();
-                if (currentTime - lastFrameTime > 1000) {
-                    System.out.println("Current frame: " + frameCount);
-                    frameCount = 0;
-                    lastFrameTime = currentTime;
-                }
-
-                if (stopConverting == false) {
+                if (recognizing) {
                     if (frames.size() == 10) {
-                        stopConverting = true;
                         // If more than 10 frames collected, send images to DNS OpenAPI Server.
+                        recognizing = false;
+
                         new Thread(() -> {
                             // Change mat to byte array and encode into base64.
                             ArrayList<String> encodedStrings = new ArrayList<>();
@@ -212,55 +185,53 @@ public class DnsRecognition {
                             // Create open api send data.
                             JSONObject sendData = new JSONObject();
                             try {
-                                sendData.put("request_code", DnsOpenApi.REQ_DROWSY_DRIVING_DETECTION);
-
                                 JSONArray images = new JSONArray();
                                 for (int loop = 0; loop < frames.size(); loop++) {
                                     images.put(encodedStrings.get(loop));
                                 }
                                 sendData.put("images", images);
 
-                                sendData.put("time", simpleDateFormat.format(new Date(System.currentTimeMillis())));
-
                                 Location currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                                JSONObject areaData = new JSONObject();
-                                areaData.put("la", currentLocation.getLatitude());
-                                areaData.put("lo", currentLocation.getLongitude());
-                                sendData.put("area", areaData);
-
-                                String strResponse = (new DnsOpenApi().execute("", DnsOpenApi.DEFAULT_CONNECTION_TIMEOUT, DnsOpenApi.DEFAULT_READ_TIMEOUT, sendData.toString())).get();
-                                JSONObject response = new JSONObject(strResponse);
-
-                                if (response.getInt("response_code") == DnsOpenApi.RES_DROWSY_DRIVING_DETECTION) {
-                                    switch (response.getInt("result")) {
-                                        case DETECT_FACE_LANDMARKS_NOT_CORRECTLY:
-                                            dnsRecognitionListener.detectFaceLandmarksNotCorrectlyListener();
-                                            break;
-                                        case FAILED_TO_DETECT_FACE_LANDMARKS:
-                                            dnsRecognitionListener.failedToDetectFaceLandmarksListener();
-                                            break;
-                                        case FAILED_TO_DETECT_FACE:
-                                            dnsRecognitionListener.failedToDetectFaceListener();
-                                            break;
-                                        case DROWSY_DRIVING_NOT_DETECTED:
-                                            dnsRecognitionListener.drowsyDrivingNotDetectedListener();
-                                            break;
-                                        case DROWSY_DRIVING_DETECTED:
-                                            dnsRecognitionListener.drowsyDrivingDetectedListener();
-                                            break;
-                                    }
+                                if (currentLocation == null) {
+                                    currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                                 }
-                            } catch (JSONException | ExecutionException | InterruptedException | SecurityException e) {
+                                sendData.put("latitude", currentLocation.getLatitude());
+                                sendData.put("longitude", currentLocation.getLongitude());
+
+                                String strResponse = (new DnsOpenApi().execute(DnsOpenApi.DNS_OPENAPI_SERVER + "/detection", DnsOpenApi.DEFAULT_CONNECTION_TIMEOUT, DnsOpenApi.DEFAULT_READ_TIMEOUT, sendData.toString())).get();
+                                JSONObject response = new JSONObject("{" + strResponse + "}");
+
+                                switch (response.getInt("result")) {
+                                    case DETECT_FACE_LANDMARKS_NOT_CORRECTLY:
+                                        dnsRecognitionListener.detectFaceLandmarksNotCorrectlyListener();
+                                        break;
+                                    case FAILED_TO_DETECT_FACE_LANDMARKS:
+                                        dnsRecognitionListener.failedToDetectFaceLandmarksListener();
+                                        break;
+                                    case FAILED_TO_DETECT_FACE:
+                                        dnsRecognitionListener.failedToDetectFaceListener();
+                                        break;
+                                    case DROWSY_DRIVING_NOT_DETECTED:
+                                        dnsRecognitionListener.drowsyDrivingNotDetectedListener();
+                                        break;
+                                    case DROWSY_DRIVING_DETECTED:
+                                        dnsRecognitionListener.drowsyDrivingDetectedListener();
+                                        break;
+                                }
+                            } catch (JSONException | SecurityException | ExecutionException | InterruptedException e) {
                                 e.printStackTrace();
                             }
 
+                            for (int loop = 0; loop < frames.size(); loop++) {
+                                frames.get(loop).release();
+                            }
                             frames.clear();
-                            stopConverting = false;
                         }).start();
                     } else if (frames.size() < 10) {
-                        frames.add(modifedFrame);
+                        frames.add(modifedFrame.clone());
                     }
                 }
+                Imgproc.resize(modifedFrame, modifedFrame, originalFrame.size());
 
                 return modifedFrame;
             }
@@ -284,15 +255,22 @@ public class DnsRecognition {
     /**
      * Start drowsy driving recognition.
      */
-    public void startRecognition() {
+    public void startCapture() {
         cameraView.enableView();
     }
 
     /**
      * Stop drowsy driving recognition.
      */
-    public void stopRecognition() {
+    public void stopCapture() {
         cameraView.disableView();
+    }
+
+    /**
+     * Set recognize state.
+     */
+    public void setRecognizing(boolean state) {
+        recognizing = state;
     }
 
     /**
