@@ -26,18 +26,18 @@
             app:layout_constraintLeft_toLeftOf="parent" />
 
         <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/btn_loadareadetail"
+            android:id="@+id/btn_loadwarningareas"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:layout_marginRight="16dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/button_primary"
             android:src="@drawable/ic_list_alt_black_24dp"
-            app:layout_constraintBottom_toTopOf="@id/btn_loadwarningareas"
+            app:layout_constraintBottom_toTopOf="@id/btn_loadareadetail"
             app:layout_constraintRight_toRightOf="parent" />
 
         <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/btn_loadwarningareas"
+            android:id="@+id/btn_loadareadetail"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:layout_marginRight="16dp"
