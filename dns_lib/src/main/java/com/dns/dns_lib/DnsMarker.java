@@ -22,7 +22,8 @@ public class DnsMarker {
     public static ArrayList<DnsMarkerObject> getNearbyWarningAreaList() {
         try {
             String response = (new DnsOpenApi().execute(DnsOpenApi.DNS_OPENAPI_SERVER + "/coordinate", DnsOpenApi.DEFAULT_CONNECTION_TIMEOUT, DnsOpenApi.DEFAULT_READ_TIMEOUT, null)).get();
-            JSONArray jsonArray = new JSONArray(response);
+            JSONObject jsonObject = new JSONObject("{ \"result\": [" + response + "]}");
+            JSONArray jsonArray = jsonObject.getJSONArray("result");
             return DnsMarkerObject.fromJsonArray(jsonArray);
         } catch (ExecutionException | InterruptedException | JSONException e) {
             e.printStackTrace();
@@ -42,7 +43,7 @@ public class DnsMarker {
         String strLongitude = String.valueOf(longitude).replace(".", "-");
         try {
             String response = (new DnsOpenApi().execute(DnsOpenApi.DNS_OPENAPI_SERVER + "/coordinate/lo/" + strLongitude + "/la/" + strLatitude, DnsOpenApi.DEFAULT_CONNECTION_TIMEOUT, DnsOpenApi.DEFAULT_READ_TIMEOUT, null)).get();
-            JSONObject jsonObject = new JSONObject(response);
+            JSONObject jsonObject = new JSONObject("{" + response + "}");
             return new DnsMarkerObject(latitude, longitude, jsonObject.getInt("count"));
         } catch (ExecutionException | InterruptedException | JSONException e) {
             e.printStackTrace();
