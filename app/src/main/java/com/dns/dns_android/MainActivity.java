@@ -21,6 +21,7 @@ import com.dns.dns_lib.DnsRecognition;
 import com.dns.dns_lib.DnsRecognitionListener;
 import com.dns.dns_lib.DnsWaker;
 import com.dns.dns_lib.DnsWakerListener;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -77,9 +78,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     googleMap.clear();
                     for (DnsMarkerObject dnsMarkerObject : dnsMarkerObjectArrayList) {
                         MarkerOptions markerOptions = new MarkerOptions();
-                        markerOptions.position(new LatLng(dnsMarkerObject.getLatitude(), dnsMarkerObject.getLongitude()));
+                        LatLng latLng = new LatLng(dnsMarkerObject.getLatitude(), dnsMarkerObject.getLongitude());
+                        markerOptions.position(latLng);
                         markerOptions.title("졸음횟수: " + dnsMarkerObject.getCount());
                         googleMap.addMarker(markerOptions);
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10));
                     }
                 });
             }).start();
@@ -95,11 +98,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                     DnsMarkerObject dnsMarkerObject = DnsMarker.getArea(currentLocation.getLatitude(), currentLocation.getLongitude());
                     MarkerOptions markerOptions = new MarkerOptions();
-                    markerOptions.position(new LatLng(dnsMarkerObject.getLatitude(), dnsMarkerObject.getLongitude()));
+                    LatLng latLng = new LatLng(dnsMarkerObject.getLatitude(), dnsMarkerObject.getLongitude());
+                    markerOptions.position(latLng);
                     markerOptions.title("졸음횟수: " + dnsMarkerObject.getCount());
                     runOnUiThread(() -> {
                         googleMap.clear();
                         googleMap.addMarker(markerOptions);
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10));
                     });
                 } catch (SecurityException e) {
                     e.printStackTrace();
