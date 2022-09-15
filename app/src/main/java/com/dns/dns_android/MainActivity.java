@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void drowsyDrivingDetectedListener() {
                 Log.d("Detection", "Drowsy driving detected");
-                dnsWaker.runVoiceRecognizeWakerExample(MainActivity.this, true, R.raw.annoying_alarm, new DnsWakerListener() {
+                dnsWaker.runVoiceRecognizeWakerExample(MainActivity.this, true, -1, new DnsWakerListener() {
                     @Override
                     public void onDriverPassedTestSuccessfully() {
 
